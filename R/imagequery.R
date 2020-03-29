@@ -7,7 +7,7 @@
 #' be queried. Standard query is on 'mousmove', but can be changed to 'click'.
 #' Note that for this to work, the \code{layerId} needs to be the same as the
 #' one that was set in \code{\link[leaflet]{addRasterImage}} or
-#' \code{link{addStrasImage}}. Currently only works for
+#' \code{\link{addStarsImage}}. Currently only works for
 #' numeric values (i.e. numeric/integer and factor values are supported).
 #'
 #' @param map the map with the RasterLayer to be queried.
@@ -16,7 +16,7 @@
 #' @param group the group of the RasterLayer to be queried.
 #' @param layerId the layerId of the RasterLayer to be queried. Needs to be the
 #'   same as supplied in \code{\link[leaflet]{addRasterImage}} or
-#'   \code{link{addStrasImage}}.
+#'   \code{\link{addStarsImage}}.
 #' @param project whether to project the RasterLayer to conform with leaflets
 #'   expected crs. Defaults to \code{TRUE} and things are likely to go haywire
 #'   if set to \code{FALSE}.
@@ -25,6 +25,7 @@
 #' @param digits the number of digits to be shown in the display field.
 #' @param position where to place the display field. Default is 'topright'.
 #' @param prefix a character string to be shown as prefix for the layerId.
+#' @param className a character string to append to the control legend.
 #' @param ... currently not used.
 #'
 #' @return
@@ -62,6 +63,7 @@ addImageQuery = function(map,
                          digits,
                          position = 'topright',
                          prefix = 'Layer',
+                         className = "",
                          ...) {
 
   if (inherits(map, "mapview")) map = mapview2leaflet(map)
@@ -96,8 +98,9 @@ addImageQuery = function(map,
 
   ## check for existing layerpicker control
   ctrlid = getCallEntryFromMap(map, "addControl")
+  ctrl_nm = paste("imageValues", layerId, sep = "-")
   imctrl = unlist(sapply(ctrlid, function(i) {
-    "imageValues" %in% map$x$calls[[i]]$args
+    ctrl_nm %in% map$x$calls[[i]]$args
   }))
   ctrlid = ctrlid[imctrl]
 
@@ -106,39 +109,29 @@ addImageQuery = function(map,
     map = leaflet::addControl(
       map,
       html = "",
-      layerId = 'imageValues',
-      position = position
+      layerId = ctrl_nm,
+      position = position,
+      className = paste("info legend", className)
     )
   }
 
   map$dependencies <- c(map$dependencies,
                         starsDataDependency(jFn = pathDatFn,
                                             counter = 1,
-                                            group = jsgroup))
+                                            group = layerId))
   map$dependencies = c(map$dependencies,
                        list(htmltools::htmlDependency(
                          version = "0.0.1",
                          name = "joda",
                          src = system.file("htmlwidgets/lib/joda",
                                            package = "leafem"),
-                         script = "joda.js")
+                         script = c("joda.js",
+                                    "addImageQuery-bindings.js"))
                        ))
 
-  map = htmlwidgets::onRender(
-    map,
-    htmlwidgets::JS(
-      paste0(
-        'function(el, x, data) {
-        var map = this;
-        map.on("', type, '", function (e) {
-          rasterPicker.pick(e, x, ', digits, ', "', prefix, ' ");
-        });
-      }'
-      )
-    )
-  )
+  bounds <- as.numeric(sf::st_bbox(projected))
 
-  return(map)
+  leaflet::invokeMethod(map, NULL, "addImageQuery", layerId, bounds, type, digits, prefix)
 }
 
 ##############################################################################

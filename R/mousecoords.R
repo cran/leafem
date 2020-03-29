@@ -56,9 +56,9 @@ addMouseCoordinates <- function(map,
                                 native.crs = FALSE) {
 
   if (inherits(map, "mapview")) map <- mapview2leaflet(map)
-  stopifnot(inherits(map, "leaflet"))
+  stopifnot(inherits(map, c("leaflet", "leaflet_proxy")))
 
-  if (native.crs | map$x$options$crs$crsClass == "L.CRS.Simple") {
+  if (native.crs) { # | map$x$options$crs$crsClass == "L.CRS.Simple") {
     txt_detailed <- paste0("
                            ' x: ' + (e.latlng.lng).toFixed(5) +
                            ' | y: ' + (e.latlng.lat).toFixed(5) +
@@ -80,6 +80,11 @@ addMouseCoordinates <- function(map,
                       ' lon: ' + (e.latlng.lng).toFixed(5) +
                       ' | lat: ' + (e.latlng.lat).toFixed(5) +
                       ' | zoom: ' + map.getZoom() + ' '")
+
+  map$dependencies = c(
+    map$dependencies,
+    clipboardDependency()
+  )
 
   map <- htmlwidgets::onRender(
     map,
@@ -154,65 +159,6 @@ addMouseCoordinates <- function(map,
       }
       });
 
-      //map.on('click', function (e) {
-      //  var txt = document.querySelector('.lnlt').textContent;
-      //  console.log(txt);
-      //  //txt.innerText.focus();
-      //  //txt.select();
-      //  setClipboardText(txt);
-      //});
-
-      function setClipboardText(text){
-      var id = 'mycustom-clipboard-textarea-hidden-id';
-      var existsTextarea = document.getElementById(id);
-
-      if(!existsTextarea){
-      console.log('Creating textarea');
-      var textarea = document.createElement('textarea');
-      textarea.id = id;
-      // Place in top-left corner of screen regardless of scroll position.
-      textarea.style.position = 'fixed';
-      textarea.style.top = 0;
-      textarea.style.left = 0;
-
-      // Ensure it has a small width and height. Setting to 1px / 1em
-      // doesn't work as this gives a negative w/h on some browsers.
-      textarea.style.width = '1px';
-      textarea.style.height = '1px';
-
-      // We don't need padding, reducing the size if it does flash render.
-      textarea.style.padding = 0;
-
-      // Clean up any borders.
-      textarea.style.border = 'none';
-      textarea.style.outline = 'none';
-      textarea.style.boxShadow = 'none';
-
-      // Avoid flash of white box if rendered for any reason.
-      textarea.style.background = 'transparent';
-      document.querySelector('body').appendChild(textarea);
-      console.log('The textarea now exists :)');
-      existsTextarea = document.getElementById(id);
-      }else{
-      console.log('The textarea already exists :3')
-      }
-
-      existsTextarea.value = text;
-      existsTextarea.select();
-
-      try {
-      var status = document.execCommand('copy');
-      if(!status){
-      console.error('Cannot copy text');
-      }else{
-      console.log('The text is now on the clipboard');
-      }
-      } catch (err) {
-      console.log('Unable to copy.');
-      }
-      }
-
-
       }
       "
     )
@@ -234,5 +180,38 @@ removeMouseCoordinates = function(map) {
 
   return(map)
 }
+
+#' convert mouse coordinates from clipboard to sfc
+#'
+#' @param x a charcter string with valid longitude and latitude values. Order
+#'   matters! If missing and \code{clipboard = TRUE} (the default) contents
+#'   will be read from the clipboard.
+#' @param clipboard whether to read contents from the clipboard. Default is
+#'   \code{TRUE}.
+#'
+#' @describeIn addMouseCoordinates convert mouse coordinates from clipboard to sfc
+#' @aliases clip2sfc
+#' @export clip2sfc
+clip2sfc = function(x, clipboard = TRUE) {
+  if (clipboard) {
+    if (!requireNamespace("clipr"))
+      stop("\nplease install.packages('clipr') to enable reading from clipboard")
+    lns = clipr::read_clip()
+    splt = strsplit(lns, " ")[[1]]
+    lnlt = regmatches(splt, regexpr("([0-9]+.[0-9]+)", splt))
+    x = as.numeric(lnlt[1])
+    y = as.numeric(lnlt[2])
+    sf::st_sfc(sf::st_point(c(x, y)), crs = 4326)
+  } else {
+    if (missing(x)) stop("\nneed some text or 'clipboard = TRUE'", call. = FALSE)
+    splt = strsplit(x, " ")[[1]]
+    lnlt = regmatches(splt, regexpr("([0-9]+.[0-9]+)", splt))
+    x = as.numeric(lnlt[1])
+    y = as.numeric(lnlt[2])
+    sf::st_sfc(sf::st_point(c(x, y)), crs = 4326)
+  }
+}
+
+
 
 ##############################################################################
