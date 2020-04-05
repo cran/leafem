@@ -117,7 +117,7 @@ addPointFeatures.mapdeck <- function(map,
                                      ...) {
   garnishMap(
     map
-    , mapdeck::add_pointcloud
+    , mapdeck::add_scatterplot
     , data = data #sf::st_zm(sf::st_cast(data, "POINT"))
     , ...
   )
@@ -154,7 +154,7 @@ addLineFeatures.mapdeck <- function(map,
   garnishMap(
     map
     , mapdeck::add_path
-    , data = sf::st_zm(data)
+    , data = data
     , ...
   )
 }
@@ -189,7 +189,7 @@ addPolygonFeatures.mapdeck <- function(map,
   garnishMap(
     map
     , mapdeck::add_polygon
-    , data = sf::st_zm(data)
+    , data = data
     , ...
   )
 }
