@@ -85,17 +85,19 @@ addLocalFile = function(map,
   if (is.null(group))
     group = basename(tools::file_path_sans_ext(file))
 
+  if (is.null(layerId)) layerId = group
+
   path_header = tempfile()
   dir.create(path_header)
-  path_header = paste0(path_header, "/", group, "_header.json")
+  path_header = paste0(path_header, "/", layerId, "_header.json")
   path_layer = tempfile()
   dir.create(path_layer)
-  path_layer = paste0(path_layer, "/", group, "_layer.json")
+  path_layer = paste0(path_layer, "/", layerId, "_layer.json")
   dir_out = tempfile()
   dir.create(dir_out)
-  path_outfile = file.path(dir_out, paste0(group, ".js"))
+  path_outfile = file.path(dir_out, paste0(layerId, ".js"))
 
-  pre <- paste0('var data = data || {}; data["', group, '"] = ')
+  pre <- paste0('var data = data || {}; data["', layerId, '"] = ')
   writeLines(pre, path_header)
 
   if (tools::file_ext(file) != "geojson") {
@@ -132,7 +134,7 @@ addLocalFile = function(map,
     map$dependencies,
     fileDependency(
       fn = path_outfile,
-      group = group
+      layerId = layerId
     )
   )
 
@@ -247,9 +249,9 @@ addTileFolder = function(map,
 #'   \url{https://gdal.org/drivers/vector/flatgeobuf.html}. \cr
 #'   \cr
 #'   In contrast to classical ways of serving data from R onto a leaflet map,
-#'   flatgeobuf will stream the data chunk by chunk so that rendering of the map
+#'   flatgeobuf can stream the data chunk by chunk so that rendering of the map
 #'   is more or less instantaneous. The map is responsive while data is still
-#'   being streamed so that popup queries, zooming and panning will work even
+#'   loading so that popup queries, zooming and panning will work even
 #'   though not all data has been rendered yet. This makes for a rather pleasant
 #'   user experience as we don't have to wait for all data to be added to the map
 #'   before interacting with it.
@@ -270,13 +272,18 @@ addTileFolder = function(map,
 #' @param color stroke color.
 #' @param weight stroke width in pixels.
 #' @param opacity stroke opacity.
-#' @param fill whether to fill the path with color
-#'   (e.g. filling on polygons or circles).
-#' @param fillColor fill color.
+#' @param fill whether to fill the path with \code{fillColor}. If \code{fillColor}
+#'   is set, this will be set to \code{TRUE}, default is \code{FALSE}.
+#' @param fillColor fill color. If set, \code{fill} will be set to \code{TRUE}.
 #' @param fillOpacity fill opacity.
 #' @param dashArray a string that defines the stroke dash pattern.
 #' @param options a list of extra options for tile layers, popups, paths
 #'   (circles, rectangles, polygons, ...), or other map elements.
+#' @param className optional class name for the popup (table). Can be used
+#'   to define css for the popup.
+#' @param scale named list with instructions on how to scale radius, width,
+#'   opacity, fillOpacity if those are to be mapped to an attribute column.
+#' @param ... currently not used.
 #'
 #' @examples
 #'  if (interactive()) {
@@ -293,6 +300,7 @@ addTileFolder = function(map,
 #'        , group = "counties"
 #'        , label = "NAME"
 #'        , popup = TRUE
+#'        , fill = TRUE
 #'        , fillColor = "blue"
 #'        , fillOpacity = 0.6
 #'        , color = "black"
@@ -319,11 +327,16 @@ addFgb = function(map,
                   color = "#03F",
                   weight = 5,
                   opacity = 0.5,
-                  fill = TRUE,
-                  fillColor = color,
+                  fill = FALSE,
+                  fillColor = NULL,
                   fillOpacity = 0.2,
                   dashArray = NULL,
-                  options = NULL) {
+                  options = NULL,
+                  className = NULL,
+                  scale = scaleOptions(),
+                  ...) {
+
+  # if (!is.null(fillColor)) fill = TRUE
 
   if (inherits(map, "mapview")) map = mapview2leaflet(map)
 
@@ -333,10 +346,25 @@ addFgb = function(map,
   if (is.null(group))
     group = basename(tools::file_path_sans_ext(file))
 
+  if (is.null(layerId)) layerId = group
+  layerId = gsub("\\.", "_", layerId)
+  layerId = gsub(" ", "", layerId)
+  layerId = gsub('\\"', '', layerId)
+  layerId = gsub("\\'", "", layerId)
+
   if (!is.null(file)) {
+    if (!file.exists(file)) {
+      stop(
+        sprintf(
+          "file %s does not seem to exist"
+          , file
+        )
+        , call. = FALSE
+      )
+    }
     path_layer = tempfile()
     dir.create(path_layer)
-    path_layer = paste0(path_layer, "/", group, "_layer.fgb")
+    path_layer = paste0(path_layer, "/", layerId, "_layer.fgb")
 
     file.copy(file, path_layer, overwrite = TRUE)
 
@@ -349,28 +377,34 @@ addFgb = function(map,
                       fillColor = fillColor,
                       fillOpacity = fillOpacity)
 
-    options = utils::modifyList(as.list(options), style_list)
+    scale = utils::modifyList(scaleOptions(), scale)
+
+    options = options[!(options %in% style_list)]
 
     map$dependencies = c(
       map$dependencies
       , fgbDependencies()
+      , chromaJsDependencies()
     )
 
     map$dependencies = c(
       map$dependencies
-      , fileAttachment(path_layer, group)
+      , fileAttachment(path_layer, layerId)
     )
 
     leaflet::invokeMethod(
       map
       , leaflet::getMapData(map)
       , "addFlatGeoBuf"
+      , layerId
       , group
       , url
       , popup
       , label
       , style_list
       , options
+      , className
+      , scale
     )
   } else {
     style_list = list(radius = radius,
@@ -387,32 +421,62 @@ addFgb = function(map,
     map$dependencies = c(
       map$dependencies
       , fgbDependencies()
+      , chromaJsDependencies()
     )
 
     leaflet::invokeMethod(
       map
       , leaflet::getMapData(map)
       , "addFlatGeoBuf"
+      , layerId
       , group
       , url
       , popup
       , label
       , style_list
       , options
+      , className
+      , scale
     )
   }
 
+}
+
+
+scaleOptions = function(radius = list(to = c(3, 15), from = c(3, 15)),
+                        weight = list(to = c(1, 10), from = c(1, 10)),
+                        opacity = list(to = c(0, 1), from = c(0, 1)),
+                        fillOpacity = list(to = c(0, 1), from = c(0, 1))) {
+  list(
+    radius = radius
+    , weight = weight
+    , opacity = opacity
+    , fillOpacity = fillOpacity
+  )
 }
 
 fgbDependencies = function() {
   list(
     htmltools::htmlDependency(
       "FlatGeoBuf"
-      , '0.0.1'
+      , '3.3.3'
       , system.file("htmlwidgets/lib/FlatGeoBuf", package = "leafem")
       , script = c(
         'fgb.js'
         , 'flatgeobuf-geojson.min.js'
+      )
+    )
+  )
+}
+
+chromaJsDependencies = function() {
+  list(
+    htmltools::htmlDependency(
+      "chromajs"
+      , '2.1.0'
+      , system.file("htmlwidgets/lib/chroma", package = "leafem")
+      , script = c(
+        'chroma.min.js'
       )
     )
   )
@@ -457,23 +521,23 @@ leafletFileDependencies <- function() {
   )
 }
 
-fileDependency <- function(fn, group) {
+fileDependency <- function(fn, layerId) {
   data_dir <- dirname(fn)
   data_file <- basename(fn)
   list(
     htmltools::htmlDependency(
-      name = group,
+      name = layerId,
       version = '0.0.1',
       src = c(file = data_dir),
       script = data_file))
 }
 
-fileAttachment = function(fn, group) {
+fileAttachment = function(fn, layerId) {
   data_dir <- dirname(fn)
   data_file <- basename(fn)
   list(
     htmltools::htmlDependency(
-      name = group,
+      name = layerId,
       version = '0.0.1',
       src = c(file = data_dir),
       attachment = data_file))

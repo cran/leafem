@@ -17,11 +17,14 @@ addFgb(
   color = "#03F",
   weight = 5,
   opacity = 0.5,
-  fill = TRUE,
-  fillColor = color,
+  fill = FALSE,
+  fillColor = NULL,
   fillOpacity = 0.2,
   dashArray = NULL,
-  options = NULL
+  options = NULL,
+  className = NULL,
+  scale = scaleOptions(),
+  ...
 )
 }
 \arguments{
@@ -53,10 +56,10 @@ If set, \code{url} is ignored.}
 
 \item{opacity}{stroke opacity.}
 
-\item{fill}{whether to fill the path with color
-(e.g. filling on polygons or circles).}
+\item{fill}{whether to fill the path with \code{fillColor}. If \code{fillColor}
+is set, this will be set to \code{TRUE}, default is \code{FALSE}.}
 
-\item{fillColor}{fill color.}
+\item{fillColor}{fill color. If set, \code{fill} will be set to \code{TRUE}.}
 
 \item{fillOpacity}{fill opacity.}
 
@@ -64,6 +67,14 @@ If set, \code{url} is ignored.}
 
 \item{options}{a list of extra options for tile layers, popups, paths
 (circles, rectangles, polygons, ...), or other map elements.}
+
+\item{className}{optional class name for the popup (table). Can be used
+to define css for the popup.}
+
+\item{scale}{named list with instructions on how to scale radius, width,
+opacity, fillOpacity if those are to be mapped to an attribute column.}
+
+\item{...}{currently not used.}
 }
 \description{
 flatgeobuf is a performant binary geo-spatial file format suitable for
@@ -73,9 +84,9 @@ flatgeobuf is a performant binary geo-spatial file format suitable for
   \url{https://gdal.org/drivers/vector/flatgeobuf.html}. \cr
   \cr
   In contrast to classical ways of serving data from R onto a leaflet map,
-  flatgeobuf will stream the data chunk by chunk so that rendering of the map
+  flatgeobuf can stream the data chunk by chunk so that rendering of the map
   is more or less instantaneous. The map is responsive while data is still
-  being streamed so that popup queries, zooming and panning will work even
+  loading so that popup queries, zooming and panning will work even
   though not all data has been rendered yet. This makes for a rather pleasant
   user experience as we don't have to wait for all data to be added to the map
   before interacting with it.
@@ -95,6 +106,7 @@ flatgeobuf is a performant binary geo-spatial file format suitable for
        , group = "counties"
        , label = "NAME"
        , popup = TRUE
+       , fill = TRUE
        , fillColor = "blue"
        , fillOpacity = 0.6
        , color = "black"

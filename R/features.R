@@ -60,6 +60,9 @@ addFeatures <- function(map,
 
   if (inherits(data, "Spatial")) data = sf::st_as_sf(data)
 
+  if (any(grepl("Z|M", colnames(sf::st_coordinates(utils::head(data, 1)))))) {
+    data = sf::st_zm(data)
+  }
 
   switch(getSFClass(sf::st_geometry(data)),
          sfc_POINT           = addPointFeatures(map, data, pane, ...),
@@ -96,9 +99,25 @@ addPointFeatures.leaflet <- function(map,
                                      data,
                                      pane,
                                      ...) {
+  if ("gl" %in% names(list(...))) wgl = list(...)$gl else wgl = FALSE
+  if (wgl) {
+    if (!requireNamespace("leafgl")) {
+      stop("please install.packages('leafgl') to use webgl rendering",
+           call. = FALSE)
+    }
+  }
+
+  if (inherits(sf::st_geometry(data), "sfc_MULTIPOINT"))
+    data = suppressWarnings(sf::st_cast(data, "POINT"))
+
   if (inherits(map, "mapview")) map <- mapview2leaflet(map)
-  garnishMap(map, leaflet::addCircleMarkers,
-             data = sf::st_zm(sf::st_cast(data, "POINT")),
+  if (wgl) {
+    renderfun = leafgl::addGlPoints
+  } else {
+    renderfun = leaflet::addCircleMarkers
+  }
+  garnishMap(map, renderfun,
+             data = data,
              popupOptions = leaflet::popupOptions(maxWidth = mw,
                                                   closeOnClick = TRUE),
              options = leaflet::leafletOptions(pane = pane),
@@ -115,10 +134,14 @@ addPointFeatures.mapview = addPointFeatures.leaflet
 addPointFeatures.mapdeck <- function(map,
                                      data,
                                      ...) {
+  if (!requireNamespace("mapdeck", quietly = TRUE)) {
+    stop("Package \"mapdeck\" must be installed for this function to work.",
+         call. = FALSE)
+  }
   garnishMap(
     map
     , mapdeck::add_scatterplot
-    , data = data #sf::st_zm(sf::st_cast(data, "POINT"))
+    , data = sf::st_cast(data, "POINT")
     , ...
   )
 }
@@ -132,9 +155,21 @@ addLineFeatures.leaflet <- function(map,
                                     data,
                                     pane,
                                     ...) {
+  if ("gl" %in% names(list(...))) wgl = list(...)$gl else wgl = FALSE
+  if (wgl) {
+    if (!requireNamespace("leafgl")) {
+      stop("please install.packages('leafgl') to use webgl rendering",
+           call. = FALSE)
+    }
+  }
   if (inherits(map, "mapview")) map <- mapview2leaflet(map)
-  garnishMap(map, leaflet::addPolylines,
-             data = sf::st_zm(data),
+  if (wgl) {
+    renderfun = leafgl::addGlPolylines
+  } else {
+    renderfun = leaflet::addPolylines
+  }
+  garnishMap(map, renderfun,
+             data = data,
              popupOptions = leaflet::popupOptions(maxWidth = mw,
                                                   closeOnClick = TRUE),
              options = leaflet::leafletOptions(pane = pane),
@@ -151,6 +186,10 @@ addLineFeatures.mapview = addLineFeatures.leaflet
 addLineFeatures.mapdeck <- function(map,
                                     data,
                                     ...) {
+  if (!requireNamespace("mapdeck", quietly = TRUE)) {
+    stop("Package \"mapdeck\" must be installed for this function to work.",
+         call. = FALSE)
+  }
   garnishMap(
     map
     , mapdeck::add_path
@@ -167,9 +206,21 @@ addPolygonFeatures.leaflet <- function(map,
                                        data,
                                        pane,
                                        ...) {
+  if ("gl" %in% names(list(...))) wgl = list(...)$gl else wgl = FALSE
+  if (wgl) {
+    if (!requireNamespace("leafgl")) {
+      stop("please install.packages('leafgl') to use webgl rendering",
+           call. = FALSE)
+    }
+  }
   if (inherits(map, "mapview")) map <- mapview2leaflet(map)
-  garnishMap(map, leaflet::addPolygons,
-             data = sf::st_zm(data),
+  if (wgl) {
+    renderfun = leafgl::addGlPolygons
+  } else {
+    renderfun = leaflet::addPolygons
+  }
+  garnishMap(map, renderfun,
+             data = data,
              popupOptions = leaflet::popupOptions(maxWidth = mw,
                                                   closeOnClick = TRUE),
              options = leaflet::leafletOptions(pane = pane),
@@ -186,6 +237,10 @@ addPolygonFeatures.mapview = addPolygonFeatures.leaflet
 addPolygonFeatures.mapdeck <- function(map,
                                        data,
                                        ...) {
+  if (!requireNamespace("mapdeck", quietly = TRUE)) {
+    stop("Package \"mapdeck\" must be installed for this function to work.",
+         call. = FALSE)
+  }
   garnishMap(
     map
     , mapdeck::add_polygon
