@@ -53,8 +53,10 @@ addHomeButton <- function(map, ext, group = "layer",
     } else {
       ext = as.vector(ext)
     }
+    useext = TRUE
   } else {
     ext = c(0, 0, 0, 0)
+    useext = FALSE
   }
 
   hb <- try(getCallEntryFromMap(map, "addHomeButton"), silent = TRUE)
@@ -73,7 +75,7 @@ addHomeButton <- function(map, ext, group = "layer",
     map$dependencies <- c(map$dependencies, leafletHomeButtonDependencies())
     leaflet::invokeMethod(map, leaflet::getMapData(map), 'addHomeButton',
                           ext[1], ext[2], ext[3], ext[4],
-                          group, label, txt, position)
+                          useext, group, label, txt, position)
   }
 
   else map
@@ -94,13 +96,20 @@ removeHomeButton <- function(map) {
 
 
 addZoomFullButton = function(map, lst, position = "bottomleft") {
-  bb = combineExtent(lst, sf = FALSE, crs = getProjection(lst[[1]]))
+  if (inherits(map, "mapview")) map = mapview2leaflet(map)
+
+  crs = ifelse(
+    !map$x$options$crs$crsClass == "L.CRS.Simple"
+    , 4326
+    , getProjection(lst[[1]])
+  )
+  bb = combineExtent(lst, sf = FALSE, crs = crs)
   names(bb) = NULL
   label = "Zoom to full extent"
   txt = "<strong>Zoom full</strong>"
 
   leaflet::invokeMethod(map, leaflet::getMapData(map), 'addHomeButton',
-                        bb[1], bb[2], bb[3], bb[4], NULL, label, txt,
+                        bb[1], bb[2], bb[3], bb[4], TRUE, NULL, label, txt,
                         position)
 
 }

@@ -1,8 +1,8 @@
 Package: leafem
 Type: Package
 Title: 'leaflet' Extensions for 'mapview'
-Version: 0.1.3
-Date: 2020-07-19
+Version: 0.1.6
+Date: 2021-05-24
 Authors@R: 
     c(person(given = "Tim",
              family = "Appelhans",
@@ -21,7 +21,7 @@ Authors@R:
              email = "Debugger@jedimasters.de"),
       person(given = "Daniel",
              family = "Montague",
-             role = c("ctb"), 
+             role = c("ctb", "cph"), 
              comment = "Leaflet.EasyButton plugin"),
       person(given = "Lorenzo",
              family = "Busetto",
@@ -39,12 +39,20 @@ Authors@R:
              email = "sebastian_gatscha@gmx.at"),
       person(given = "Björn",
              family = "Harrtell",
-             role = "ctb",
+             role = c("ctb", "cph"),
              comment = "FlatGeobuf plugin"),
       person(given = "Daniel",
              family = "Dufour",
+             role = c("ctb", "cph"),
+             comment = "georaster-layer-for-leaflet"),
+      person(given = "Yeedle",
+             family = "Neuwirth",
+             role = "ctb"),
+      person(given = "Kevin",  
+             family = "Cazelles", 
              role = "ctb",
-             comment = "georaster-layer-for-leaflet"))
+             email = "kevin.cazelles@gmail.com", 
+             comment = c(ORCID = "0000-0001-6619-9874")))
 Maintainer: Tim Appelhans <tim.appelhans@gmail.com>
 Description: Provides extensions for packages 'leaflet' & 'mapdeck', 
     many of which are used by package 'mapview'. 
@@ -57,24 +65,25 @@ License: MIT + file LICENSE
 URL: https://github.com/r-spatial/leafem
 BugReports: https://github.com/r-spatial/leafem/issues
 Depends: R (>= 3.1.0)
-Imports: base64enc, htmltools (>= 0.3), htmlwidgets, leaflet (>=
-        2.0.1), raster, sf, png
+Imports: base64enc, geojsonsf, htmltools (>= 0.3), htmlwidgets, leaflet
+        (>= 2.0.1), methods, raster, sf, png
 Suggests: clipr, gdalUtils, leafgl, mapdeck, plainview, stars
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2020-07-26 08:59:24 UTC; timpanse
+Packaged: 2021-05-24 12:16:23 UTC; timpanse
 Author: Tim Appelhans [cre, aut],
   Christoph Reudenbach [ctb],
   Kenton Russell [ctb],
   Jochen Darley [ctb],
-  Daniel Montague [ctb] (Leaflet.EasyButton plugin),
+  Daniel Montague [ctb, cph] (Leaflet.EasyButton plugin),
   Lorenzo Busetto [ctb],
   Luigi Ranghetti [ctb],
   Miles McBain [ctb],
   Sebastian Gatscha [ctb],
-  Björn Harrtell [ctb] (FlatGeobuf plugin),
-  Daniel Dufour [ctb] (georaster-layer-for-leaflet)
+  Björn Harrtell [ctb, cph] (FlatGeobuf plugin),
+  Daniel Dufour [ctb, cph] (georaster-layer-for-leaflet),
+  Yeedle Neuwirth [ctb],
+  Kevin Cazelles [ctb] (<https://orcid.org/0000-0001-6619-9874>)
 Repository: CRAN
-Date/Publication: 2020-07-26 09:20:02 UTC
+Date/Publication: 2021-05-24 13:50:02 UTC

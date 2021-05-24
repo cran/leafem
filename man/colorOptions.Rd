@@ -4,13 +4,20 @@
 \alias{colorOptions}
 \title{Color options for addGeoRaster and addGeotiff}
 \usage{
-colorOptions(palette = NULL, breaks = NULL, na.color = "#bebebe22")
+colorOptions(
+  palette = NULL,
+  breaks = NULL,
+  domain = NULL,
+  na.color = "#bebebe22"
+)
 }
 \arguments{
 \item{palette}{the color palette to use. Can be a set of colors or a
 color generating function such as the result of \code{\link[grDevices]{colorRampPalette}}.}
 
 \item{breaks}{the breaks at which color should change.}
+
+\item{domain}{the value domain (min/max) within which color mapping should occur.}
 
 \item{na.color}{color for NA values (will map to NaN in Javascript).}
 }
