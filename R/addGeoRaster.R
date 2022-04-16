@@ -324,6 +324,7 @@ addCOG = function(map,
                   colorOptions = NULL, #colorOptions(),
                   pixelValuesToColorFn = NULL,
                   autozoom = TRUE,
+                  rgb = FALSE,
                   ...) {
 
   map$dependencies <- c(
@@ -343,9 +344,9 @@ addCOG = function(map,
     , opacity
     , options
     , colorOptions
-    , rgb
     , pixelValuesToColorFn
     , autozoom
+    , rgb
   )
 }
 
@@ -385,7 +386,7 @@ leafletGeoRasterDependencies = function() {
       system.file("htmlwidgets/lib/georaster-for-leaflet", package = "leafem"),
       script = c(
         "georaster.min.js"
-        , "georaster-layer-for-leaflet.browserify.min.js"
+        , "georaster-layer-for-leaflet-3.7.1.min.js"
         , "georaster-binding.js"
         , "georasterUtils.js"
         , "mathjs.min.js"

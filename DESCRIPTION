@@ -1,8 +1,7 @@
 Package: leafem
 Type: Package
 Title: 'leaflet' Extensions for 'mapview'
-Version: 0.1.6
-Date: 2021-05-24
+Version: 0.2.0
 Authors@R: 
     c(person(given = "Tim",
              family = "Appelhans",
@@ -62,16 +61,17 @@ Description: Provides extensions for packages 'leaflet' & 'mapdeck',
     mouse pointer and zoom-to-layer buttons. Additionally, provides a feature 
     type agnostic function to add points, lines, polygons to a map.
 License: MIT + file LICENSE
-URL: https://github.com/r-spatial/leafem
+URL: https://github.com/r-spatial/leafem,
+        https://r-spatial.github.io/leafem/
 BugReports: https://github.com/r-spatial/leafem/issues
 Depends: R (>= 3.1.0)
 Imports: base64enc, geojsonsf, htmltools (>= 0.3), htmlwidgets, leaflet
         (>= 2.0.1), methods, raster, sf, png
-Suggests: clipr, gdalUtils, leafgl, mapdeck, plainview, stars
+Suggests: clipr, leafgl, mapdeck, plainview, rgdal, stars
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 NeedsCompilation: no
-Packaged: 2021-05-24 12:16:23 UTC; timpanse
+Packaged: 2022-04-16 15:07:59 UTC; tim
 Author: Tim Appelhans [cre, aut],
   Christoph Reudenbach [ctb],
   Kenton Russell [ctb],
@@ -86,4 +86,4 @@ Author: Tim Appelhans [cre, aut],
   Yeedle Neuwirth [ctb],
   Kevin Cazelles [ctb] (<https://orcid.org/0000-0001-6619-9874>)
 Repository: CRAN
-Date/Publication: 2021-05-24 13:50:02 UTC
+Date/Publication: 2022-04-16 16:12:32 UTC
