@@ -145,7 +145,6 @@ LeafletWidget.methods.addCOG = function (url,
                                          rgb) {
 
   var map = this;
-
   var pane;  // could also use let
   if (options.pane === undefined) {
     pane = 'tilePane';
@@ -153,9 +152,27 @@ LeafletWidget.methods.addCOG = function (url,
     pane = options.pane;
   }
 
+  var layers = layers || {};
+
   parseGeoraster(url).then(georaster => {
     console.log("georaster:", georaster);
 
+    layers[layerId] = new GeoRasterLayer({
+      georaster,
+      resolution: resolution,
+      opacity: opacity,
+      pixelValuesToColorFn: pixelValuesToColorFn,
+      pane: pane
+    });
+    map.layerManager.addLayer(layers[layerId], null, layerId, group);
+
+    if (autozoom) {
+      map.fitBounds(layers[layerId].getBounds());
+    }
+  });
+};
+
+/*
     if (colorOptions !== null) {
       // get color palette etc
       const cols = colorOptions.palette;
@@ -165,6 +182,8 @@ LeafletWidget.methods.addCOG = function (url,
       if (colorOptions.breaks !== null) {
         scale = scale.classes(colorOptions.breaks);
       }
+    }
+*/
 /*
     let mins = georaster.mins;
     let maxs = georaster.maxs;
@@ -201,6 +220,8 @@ LeafletWidget.methods.addCOG = function (url,
       }
     }
 */
+
+/*
       // define pixel value -> colorm mapping (if not provided)
       if (pixelValuesToColorFn === null) {
         pixelValuesToColorFn = values => {
@@ -214,7 +235,7 @@ LeafletWidget.methods.addCOG = function (url,
         pixelValuesToColorFn = pixelValuesToColorFn;
       }
     }
-
+*/
 
     /*
         GeoRasterLayer is an extension of GridLayer,
@@ -222,17 +243,4 @@ LeafletWidget.methods.addCOG = function (url,
         Just make sure to include the georaster option!
         http://leafletjs.com/reference-1.2.0.html#gridlayer
     */
-    var layer = new GeoRasterLayer({
-        georaster,
-        resolution: resolution,
-        opacity: opacity,
-        pixelValuesToColorFn: pixelValuesToColorFn,
-        pane: pane
-    });
-    map.layerManager.addLayer(layer, null, layerId, group);
 
-    if (autozoom) {
-      map.fitBounds(layer.getBounds());
-    }
-  });
-};

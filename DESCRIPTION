@@ -1,7 +1,6 @@
 Package: leafem
-Type: Package
 Title: 'leaflet' Extensions for 'mapview'
-Version: 0.2.0
+Version: 0.2.3
 Authors@R: 
     c(person(given = "Tim",
              family = "Appelhans",
@@ -47,6 +46,10 @@ Authors@R:
       person(given = "Yeedle",
              family = "Neuwirth",
              role = "ctb"),
+      person(given = "Derek",
+             family = "Friend",
+             role = "ctb",
+             email = "dafriend.r@gmail.com"),
       person(given = "Kevin",  
              family = "Cazelles", 
              role = "ctb",
@@ -67,11 +70,11 @@ BugReports: https://github.com/r-spatial/leafem/issues
 Depends: R (>= 3.1.0)
 Imports: base64enc, geojsonsf, htmltools (>= 0.3), htmlwidgets, leaflet
         (>= 2.0.1), methods, raster, sf, png
-Suggests: clipr, leafgl, mapdeck, plainview, rgdal, stars
+Suggests: clipr, leafgl, lwgeom, mapdeck, plainview, stars
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2022-04-16 15:07:59 UTC; tim
+Packaged: 2023-09-17 08:29:29 UTC; tim
 Author: Tim Appelhans [cre, aut],
   Christoph Reudenbach [ctb],
   Kenton Russell [ctb],
@@ -84,6 +87,7 @@ Author: Tim Appelhans [cre, aut],
   Björn Harrtell [ctb, cph] (FlatGeobuf plugin),
   Daniel Dufour [ctb, cph] (georaster-layer-for-leaflet),
   Yeedle Neuwirth [ctb],
+  Derek Friend [ctb],
   Kevin Cazelles [ctb] (<https://orcid.org/0000-0001-6619-9874>)
 Repository: CRAN
-Date/Publication: 2022-04-16 16:12:32 UTC
+Date/Publication: 2023-09-17 23:40:02 UTC
