@@ -21,6 +21,8 @@ addGeotiff(
   rgb = FALSE,
   pixelValuesToColorFn = NULL,
   autozoom = TRUE,
+  imagequery = TRUE,
+  imagequeryOptions = NULL,
   ...
 )
 }
@@ -50,7 +52,7 @@ if FALSE, it's the caller's responsibility to ensure that \code{file} is already
 
 \item{method}{character defining the resampling method to be used when
 \code{project} is \code{TRUE}.
-See \url{https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r} for
+See \url{https://gdal.org/en/latest/programs/gdalwarp.html#cmdoption-gdalwarp-r} for
 possible values.}
 
 \item{opacity}{opacity of the rendered layer.}
@@ -69,6 +71,11 @@ some examples.}
 
 \item{autozoom}{whether to automatically zoom to the full extent of the layer.
 Default is \code{TRUE}}
+
+\item{imagequery}{If \code{TRUE} a leaflet control with the hovered/clicked
+value will appear on the map.}
+
+\item{imagequeryOptions}{additional options for the control panel.}
 
 \item{...}{currently not used.}
 }

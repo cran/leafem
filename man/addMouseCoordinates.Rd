@@ -6,7 +6,13 @@
 \alias{clip2sfc}
 \title{Add mouse coordinate information at top of map.}
 \usage{
-addMouseCoordinates(map, epsg = NULL, proj4string = NULL, native.crs = FALSE)
+addMouseCoordinates(
+  map,
+  epsg = NULL,
+  proj4string = NULL,
+  native.crs = FALSE,
+  css = list()
+)
 
 removeMouseCoordinates(map)
 
@@ -20,6 +26,9 @@ clip2sfc(x, clipboard = TRUE)
 \item{proj4string}{the proj4string to be shown.}
 
 \item{native.crs}{logical. whether to use the native crs in the coordinates box.}
+
+\item{css}{list of valid CSS key-value pairs. See e.g.
+\url{https://www.w3schools.com/cssref/index.php} for possible values.}
 
 \item{x}{a charcter string with valid longitude and latitude values. Order
 matters! If missing and \code{clipboard = TRUE} (the default) contents
@@ -38,13 +47,13 @@ on the map.
 \details{
 If style is set to "detailed", the following information will be displayed:
 \itemize{
-  \item x: x-position of the mouse cursor in projected coordinates
-  \item y: y-position of the mouse cursor in projected coordinates
-  \item epsg: the epsg code of the coordinate reference system of the map
-  \item proj4: the proj4 definition of the coordinate reference system of the map
-  \item lat: latitude position of the mouse cursor
-  \item lon: longitude position of the mouse cursor
-  \item zoom: the current zoom level
+\item x: x-position of the mouse cursor in projected coordinates
+\item y: y-position of the mouse cursor in projected coordinates
+\item epsg: the epsg code of the coordinate reference system of the map
+\item proj4: the proj4 definition of the coordinate reference system of the map
+\item lat: latitude position of the mouse cursor
+\item lon: longitude position of the mouse cursor
+\item zoom: the current zoom level
 }
 
 By default, only 'lat', 'lon' and 'zoom' are shown. To show the details about
@@ -72,5 +81,17 @@ m = leaflet() \%>\%
 m
 
 removeMouseCoordinates(m)
+
+# adjust css
+leaflet() \%>\%
+  addProviderTiles("OpenStreetMap") \%>\%
+  addMouseCoordinates(
+    css = list(
+     "font-size" = "30px",
+     "text-align" = "center",
+     "background-color" = "#ff000080",
+     "color" = "rgb(255, 255, 255)"
+   )
+ )
 
 }

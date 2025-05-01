@@ -26,7 +26,7 @@
 #'   See \url{https://github.com/r-spatial/leafem/issues/25} for some examples.
 #' @param autozoom whether to automatically zoom to the full extent of the layer.
 #'   Default is \code{TRUE}
-#' @param ... currently not used.
+#' @param ... Further arguments passed to \code{\link[leafem]{addGeotiff}}.
 #'
 #' @return
 #' A leaflet map object.
@@ -98,7 +98,8 @@ addGeoRaster = function(map,
     , colorOptions = colorOptions
     , pixelValuesToColorFn = pixelValuesToColorFn
     , autozoom = autozoom
-  )
+    , ...
+    )
 
 }
 
@@ -131,7 +132,7 @@ addGeoRaster = function(map,
 #'   if FALSE, it's the caller's responsibility to ensure that \code{file} is already projected.
 #' @param method character defining the resampling method to be used when
 #' \code{project} is \code{TRUE}.
-#' See \url{https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r} for
+#' See \url{https://gdal.org/en/latest/programs/gdalwarp.html#cmdoption-gdalwarp-r} for
 #' possible values.
 #' @param opacity opacity of the rendered layer.
 #' @param options options to be passed to the layer.
@@ -144,6 +145,9 @@ addGeoRaster = function(map,
 #'   some examples.
 #' @param autozoom whether to automatically zoom to the full extent of the layer.
 #'   Default is \code{TRUE}
+#' @param imagequery If \code{TRUE} a leaflet control with the hovered/clicked
+#'   value will appear on the map.
+#' @param imagequeryOptions additional options for the control panel.
 #' @param ... currently not used.
 #'
 #' @return
@@ -195,6 +199,8 @@ addGeotiff = function(map,
                       rgb = FALSE,
                       pixelValuesToColorFn = NULL,
                       autozoom = TRUE,
+                      imagequery = TRUE,
+                      imagequeryOptions = NULL,
                       ...) {
 
   if (inherits(map, "mapview")) map = mapview2leaflet(map)
@@ -207,6 +213,13 @@ addGeotiff = function(map,
 
   if (is.null(layerId)) layerId = group
   layerId = gsub("\\.", "_", layerId)
+
+  if (grepl("\\s", layerId)) {
+    warning("The layerId is invalid. Maybe it contains spaces?")
+  }
+
+  if (missing(imagequeryOptions)) imagequeryOptions <- imagequeryOptions()
+  imagequeryOptions[["imagequery"]] <- imagequery
 
   if (is.null(colorOptions)) {
     colorOptions = colorOptions()
@@ -285,6 +298,7 @@ addGeotiff = function(map,
       , rgb
       , pixelValuesToColorFn
       , autozoom
+      , imagequeryOptions
     )
   } else {
     map$dependencies <- c(
@@ -309,6 +323,7 @@ addGeotiff = function(map,
       , rgb
       , pixelValuesToColorFn
       , autozoom
+      , imagequeryOptions
     )
   }
 
@@ -326,23 +341,16 @@ addGeotiff = function(map,
 #'
 #' @param map the map to add the COG to.
 #' @param url url to the COG file to render.
-#' @param group he name of the group this COG should belong to.
-#' @param layerId the layerId.
-#' @param resolution the target resolution for the simple nearest neighbor
-#'   interpolation. Larger values will result in more detailed rendering,
-#'   but may impact performance. Default is 96 (pixels).
-#' @param opacity image opacity.
-#' @param options see [leaflet](tileOptions).
 #' @param colorOptions list defining the palette, breaks and na.color to be used.
 #'   Currently not used.
 #' @param pixelValuesToColorFn optional JS function to be passed to the browser.
 #'   Can be used to fine tune and manipulate the color mapping.
 #'   See examples & \url{https://github.com/r-spatial/leafem/issues/25} for
 #'   some examples. Currently not used.
-#' @param autozoom whether to automatically zoom to the full extent of the layer.
-#'   Default is \code{TRUE}.
 #' @param rgb logical, whether to render Geotiff as RGB. Currently not used.
 #' @param ... currently not used.
+#'
+#' @inheritParams addGeotiff
 #'
 #' @return
 #' A leaflet map object.
@@ -356,8 +364,8 @@ addGeotiff = function(map,
 #'   image_url = "sentinel-s2-l2a-cogs/46/X/DG/2022/8/S2B_46XDG_20220829_0_L2A/L2A_PVI.tif"
 #'   url = sprintf("%s/%s", base_url, image_url)
 #'
-#'   leaflet() |>
-#'     addTiles() |>
+#'   leaflet() %>%
+#'     addTiles() %>%
 #'     leafem:::addCOG(
 #'       url = url
 #'       , group = "COG"
@@ -376,17 +384,31 @@ addCOG = function(map,
                   resolution = 96,
                   opacity = 0.8,
                   options = leaflet::tileOptions(),
-                  colorOptions = NULL, #colorOptions(),
+                  colorOptions = NULL,
                   pixelValuesToColorFn = NULL,
                   autozoom = TRUE,
                   rgb = FALSE,
+                  imagequery = TRUE,
+                  imagequeryOptions = NULL,
                   ...) {
+
+  if (is.null(group))
+    group = basename(url)
+
+  if (is.null(layerId)) layerId = group
+  layerId = gsub("\\.", "_", layerId)
+  if (grepl("\\s", layerId)) {
+    warning("The layerId is invalid. Maybe it contains spaces?")
+  }
 
   map$dependencies <- c(
     map$dependencies
     , leafletGeoRasterDependencies()
     , chromaJsDependencies()
   )
+
+  if (missing(imagequeryOptions)) imagequeryOptions <- imagequeryOptions()
+  imagequeryOptions[["imagequery"]] <- imagequery
 
   leaflet::invokeMethod(
     map
@@ -402,9 +424,35 @@ addCOG = function(map,
     , pixelValuesToColorFn
     , autozoom
     , rgb
+    , imagequeryOptions
   )
 }
 
+
+#' Imagequery options for addGeoRaster, addGeotiff and addCOG
+#'
+#' @inheritParams addImageQuery
+#' @param noData the text shown when the mouse is over a `NoData Value` as
+#' identified by GDAL. The default "NoData Value" will show whatever is defined by
+#' the Geotiff metadata.
+#' @export
+imagequeryOptions <- function(className = "info legend",
+                              position = c("topright", "topleft", "bottomleft", "bottomright"),
+                              type = c("mousemove", "click"),
+                              digits = NULL,
+                              prefix = "Layer",
+                              noData = "NoData Value") {
+  type = match.arg(type)
+  position <- match.arg(position)
+  list(
+    className = className,
+    position = position,
+    type = type,
+    digits = digits,
+    prefix = prefix,
+    noData = noData
+  )
+}
 
 #' Color options for addGeoRaster and addGeotiff
 #'
@@ -441,6 +489,7 @@ leafletGeoRasterDependencies = function() {
       system.file("htmlwidgets/lib/georaster-for-leaflet", package = "leafem"),
       script = c(
         "georaster.min.js"
+        , "geoblaze.js"
         , "georaster-layer-for-leaflet.min.js"
         , "georaster-binding.js"
         , "georasterUtils.js"
@@ -473,3 +522,4 @@ extractBands = function(fun) {
   bands = as.numeric(unlist(regmatches(band_calc, idx_r)))
   return(sort(unique(bands)))
 }
+

@@ -3,32 +3,19 @@
 #' @param map a mapview or leaflet object.
 #' @param x a stars layer.
 #' @param band the band number to be plotted.
-#' @param colors the color palette (see colorNumeric) or function to use to
-#' color the raster values (hint: if providing a function, set na.color
-#' to "#00000000" to make NA areas transparent)
-#' @param opacity the base opacity of the raster, expressed from 0 to 1
-#' @param attribution the HTML string to show as the attribution for this layer
-#' @param layerId the layer id
-#' @param group the name of the group this raster image should belong to
-#' (see the same parameter under addTiles)
-#' @param project if TRUE, automatically project x to the map projection
-#' expected by Leaflet (EPSG:3857); if FALSE, it's the caller's responsibility
-#' to ensure that x is already projected, and that extent(x) is
-#' expressed in WGS84 latitude/longitude coordinates
-#' @param method the method used for computing values of the new,
-#' projected raster image. "bilinear" (the default) is appropriate for
-#' continuous data, "ngb" - nearest neighbor - is appropriate for categorical data.
-#' Ignored if project = FALSE. See projectRaster for details.
-#' @param maxBytes the maximum number of bytes to allow for the projected image
-#' (before base64 encoding); defaults to 4MB.
 #' @param data the data object from which the argument values are derived; by
 #'   default, it is the \code{data} object provided to \code{leaflet()}
 #'   initially, but can be overridden.
+#' @inheritParams addRasterRGB
+#' @inheritParams leaflet::addRasterImage
 #' @param ... currently not used.
 #'
 #' @details
-#' This is an adaption of \code{\link{addRasterImage}}. See that documentation
+#' This is an adaption of \code{\link[leaflet]{addRasterImage}}. See that documentation
 #' for details.
+#'
+#' Note, method `auto`, the default, will choose between `near` for factorial and
+#' `bilinear` for numeric data. All other methods need to be set manually.
 #'
 #' @examples
 #' \donttest{
@@ -43,7 +30,7 @@
 #' }
 #'
 #' @importFrom grDevices col2rgb colors
-#' @importFrom leaflet colorNumeric expandLimits getMapData invokeMethod
+#' @importFrom leaflet colorNumeric expandLimits getMapData invokeMethod gridOptions
 #' @importFrom sf st_as_sfc st_bbox st_transform
 #' @importFrom base64enc base64encode
 #' @importFrom png writePNG
@@ -58,8 +45,10 @@ addStarsImage <- function(
   , layerId = NULL
   , group = NULL
   , project = FALSE
-  , method = c("auto", "bilinear", "ngb")
+  , method = c("auto", "bilinear", "near", "average", "mode", "cubic", "cubicspline",
+               "lanczos", "sum", "min", "q1", "median", "q3", "max", "rms")
   , maxBytes = 4 * 1024 * 1024
+  , options = gridOptions()
   , data = getMapData(map)
   , ...
 ) {
@@ -87,7 +76,7 @@ addStarsImage <- function(
   method <- match.arg(method)
   if (method == "auto") {
     if (raster_is_factor) {
-      method <- "ngb"
+      method <- "near"
     } else {
       method <- "bilinear"
     }
@@ -100,7 +89,7 @@ addStarsImage <- function(
   if (project) {
     # if we should project the data
     if (utils::packageVersion("stars") >= "0.4-1") {
-      projected = stars::st_warp(x, crs = 3857)
+      projected = stars::st_warp(x, crs = 3857, method = method, use_gdal = TRUE)
     } else {
       projected <- sf::st_transform(x, crs = 3857)
     }
@@ -124,7 +113,7 @@ addStarsImage <- function(
   }
 
   if (!is.function(colors)) {
-    if (method == "ngb") {
+    if (method == "near") {
       # 'factors'
       colors <- leaflet::colorFactor(
         colors, domain = NULL, na.color = "#00000000", alpha = TRUE
@@ -162,10 +151,12 @@ addStarsImage <- function(
     list(bounds[4], bounds[1]),
     list(bounds[2], bounds[3])
   )
+  options$opacity <- opacity
+  options$attribution <- attribution
 
   map = leaflet::invokeMethod(
     map, data, "addRasterImage", uri, latlng,
-    opacity, attribution, layerId, group
+    layerId, group, options
   )
 
   leaflet::expandLimits(

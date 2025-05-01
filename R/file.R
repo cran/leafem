@@ -152,15 +152,11 @@ addLocalFile = function(map,
 
   map$dependencies <- c(
     map$dependencies,
+    leafletFileDependencies(),
     fileDependency(
       fn = path_outfile,
       layerId = layerId
     )
-  )
-
-  map$dependencies <- c(
-    map$dependencies,
-    leafletFileDependencies()
   )
 
   leaflet::invokeMethod(
@@ -181,7 +177,7 @@ addLocalFile = function(map,
 #'
 #' @description
 #'   Add tiled raster data pyramids from a local folder that was created with
-#'   gdal2tiles.py (see \url{https://gdal.org/programs/gdal2tiles.html} for details).
+#'   gdal2tiles.py (see \url{https://gdal.org/en/latest/programs/gdal2tiles.html} for details).
 #'
 #' @param map a mapview or leaflet object.
 #' @param folder the (top level) folder where the tiles (folders) reside.
@@ -266,7 +262,7 @@ addTileFolder = function(map,
 #'   serving large data. For more details see
 #'   \url{https://github.com/flatgeobuf/flatgeobuf} and the respective
 #'   documentation for the GDAL/OGR driver at
-#'   \url{https://gdal.org/drivers/vector/flatgeobuf.html}. \cr
+#'   \url{https://gdal.org/en/latest/drivers/vector/flatgeobuf.html}. \cr
 #'   \cr
 #'   In contrast to classical ways of serving data from R onto a leaflet map,
 #'   flatgeobuf can stream the data chunk by chunk so that rendering of the map
@@ -305,7 +301,35 @@ addTileFolder = function(map,
 #'   opacity, fillOpacity if those are to be mapped to an attribute column.
 #' @param minZoom minimum zoom level at which data should be rendered.
 #' @param maxZoom maximum zoom level at which data should be rendered.
+#' @inheritParams leaflet::addPolylines
 #' @param ... currently not used.
+#'
+#' @details
+#'   Styling options in `addFgb` offer flexibility by allowing
+#'   users to either specify styles directly as function arguments or define them
+#'   as attributes in the data object:
+#'
+#'   - **Direct Styling:** You can pass style arguments (e.g., `color`, `weight`,
+#'     `opacity`) directly to the function. These will apply uniformly to all features
+#'     in the layer.
+#'   - **Attribute-based Styling:** Alternatively, you can include styling properties
+#'     (e.g., `color`, `fillColor`, `weight`) as columns in your data object before
+#'     writing it to an FGB file. Set the corresponding arguments in `addFgb` to
+#'     `NULL`, and the function will use these attributes for styling during map
+#'     rendering.
+#'
+#'     For example:
+#'      ```R
+#'      ## using custom `color`
+#'      data$color <- colorNumeric(palette = "viridis", domain = data$var)(data$var)
+#'      sf::st_write(obj = data, dsn = "myfile.fgb", driver = "FlatGeobuf")
+#'      leafem::addFgb(file = "myfile.fgb", color = NULL)
+#'
+#'      ## using custom `fillColor`
+#'      data$fillColor <- colorNumeric(palette = "viridis", domain = data$var)(data$var)
+#'      sf::st_write(obj = data, dsn = "myfile.fgb", driver = "FlatGeobuf")
+#'      leafem::addFgb(file = "myfile.fgb", fill = TRUE, fillColor = NULL)
+#'      ```
 #'
 #' @examples
 #'  if (interactive()) {
@@ -358,6 +382,8 @@ addFgb = function(map,
                   scale = scaleOptions(),
                   minZoom = NULL,
                   maxZoom = 52,
+                  highlightOptions = NULL,
+                  labelOptions = NULL,
                   ...) {
 
 
@@ -375,10 +401,8 @@ addFgb = function(map,
 
   if (is.null(layerId)) layerId = group
   layerId = gsub("[[:punct:] ]", "_", layerId)
-  # layerId = gsub("\\.", "_", layerId)
-  # layerId = gsub(" ", "", layerId)
-  # layerId = gsub('\\"', '', layerId)
-  # layerId = gsub("\\'", "", layerId)
+
+  if (missing(labelOptions)) labelOptions <- leaflet::labelOptions()
 
   if (!is.null(file)) {
     if (!file.exists(file)) {
@@ -392,7 +416,7 @@ addFgb = function(map,
     }
     path_layer = tempfile()
     dir.create(path_layer)
-    path_layer = paste0(path_layer, "/", layerId, "_layer.fgb")
+    path_layer = paste0(path_layer, "/", group, "_layer.fgb")
 
     file.copy(file, path_layer, overwrite = TRUE)
 
@@ -407,17 +431,13 @@ addFgb = function(map,
 
     scale = utils::modifyList(scaleOptions(), scale)
 
-    options = options[!(options %in% style_list)]
+    options = options[!(names(options) %in% names(style_list))]
 
     map$dependencies = c(
       map$dependencies
       , fgbDependencies()
       , chromaJsDependencies()
-    )
-
-    map$dependencies = c(
-      map$dependencies
-      , fileAttachment(path_layer, layerId)
+      , fileAttachment(path_layer, group)
     )
 
     if (!is.null(minZoom)) {
@@ -440,6 +460,8 @@ addFgb = function(map,
         , scaleFields
         , minZoom
         , maxZoom
+        , highlightOptions
+        , labelOptions
       )
     } else {
       leaflet::invokeMethod(
@@ -456,6 +478,8 @@ addFgb = function(map,
         , className
         , scale
         , scaleFields
+        , highlightOptions
+        , labelOptions
       )
     }
   } else {
@@ -496,6 +520,8 @@ addFgb = function(map,
         , scaleFields
         , minZoom
         , maxZoom
+        , highlightOptions
+        , labelOptions
       )
     } else {
       leaflet::invokeMethod(
@@ -512,6 +538,8 @@ addFgb = function(map,
         , className
         , scale
         , scaleFields
+        , highlightOptions
+        , labelOptions
       )
     }
   }
@@ -535,7 +563,7 @@ fgbDependencies = function() {
   list(
     htmltools::htmlDependency(
       "FlatGeoBuf"
-      , '3.21.3'
+      , '3.31.1'
       , system.file("htmlwidgets/lib/FlatGeoBuf", package = "leafem")
       , script = c(
         'fgb.js'

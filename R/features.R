@@ -9,8 +9,9 @@
 #' @param data A \code{sf} object to be added to the \code{map}.
 #' @param pane The name of the map pane for the features to be rendered in.
 #' @param ... Further arguments passed to the respective \code{leaflet::add*}
-#' functions. See \code{\link{addCircleMarkers}}, \code{\link{addPolylines}}
-#' and \code{\link{addPolygons}}.
+#' functions. See \link[leaflet:addControl]{addCircleMarkers},
+#' \link[leaflet:addControl]{addPolylines}
+#' and \link[leaflet:addControl]{addPolygons}.
 #'
 #' @return
 #' A leaflet \code{map} object.
@@ -95,6 +96,7 @@ addPointFeatures = function(map, ...) UseMethod("addPointFeatures")
 
 
 ### Point Features leaflet
+#' @exportS3Method leafem::addPointFeatures
 addPointFeatures.leaflet <- function(map,
                                      data,
                                      pane,
@@ -125,12 +127,15 @@ addPointFeatures.leaflet <- function(map,
 }
 
 ### Point Features leaflet_proxy
+#' @exportS3Method leafem::addPointFeatures
 addPointFeatures.leaflet_proxy <- addPointFeatures.leaflet
 
 ### Point Features mapview
+#' @exportS3Method leafem::addPointFeatures
 addPointFeatures.mapview = addPointFeatures.leaflet
 
 ### Point Features mapdeck
+#' @exportS3Method leafem::addPointFeatures
 addPointFeatures.mapdeck <- function(map,
                                      data,
                                      ...) {
@@ -151,6 +156,7 @@ addPointFeatures.mapdeck <- function(map,
 addLineFeatures = function(map, ...) UseMethod("addLineFeatures")
 
 ### Line Features leaflet
+#' @exportS3Method leafem::addLineFeatures
 addLineFeatures.leaflet <- function(map,
                                     data,
                                     pane,
@@ -177,12 +183,15 @@ addLineFeatures.leaflet <- function(map,
 }
 
 ### Line Features leaflet_proxy
+#' @exportS3Method leafem::addLineFeatures
 addLineFeatures.leaflet_proxy <- addLineFeatures.leaflet
 
 ### Line Features mapview
+#' @exportS3Method leafem::addLineFeatures
 addLineFeatures.mapview = addLineFeatures.leaflet
 
 ### Line Features mapdeck
+#' @exportS3Method leafem::addLineFeatures
 addLineFeatures.mapdeck <- function(map,
                                     data,
                                     ...) {
@@ -202,6 +211,7 @@ addLineFeatures.mapdeck <- function(map,
 addPolygonFeatures = function(map, ...) UseMethod("addPolygonFeatures")
 
 ### Polygon Features leaflet
+#' @exportS3Method leafem::addPolygonFeatures
 addPolygonFeatures.leaflet <- function(map,
                                        data,
                                        pane,
@@ -228,12 +238,15 @@ addPolygonFeatures.leaflet <- function(map,
 }
 
 ### Polygon Features leaflet_proxy
+#' @exportS3Method leafem::addPolygonFeatures
 addPolygonFeatures.leaflet_proxy <- addPolygonFeatures.leaflet
 
 ### Polygon Features mapview
+#' @exportS3Method leafem::addPolygonFeatures
 addPolygonFeatures.mapview = addPolygonFeatures.leaflet
 
 ### Polygon Features mapdeck
+#' @exportS3Method leafem::addPolygonFeatures
 addPolygonFeatures.mapdeck <- function(map,
                                        data,
                                        ...) {

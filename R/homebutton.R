@@ -40,9 +40,12 @@
 #' @export addHomeButton
 #' @name addHomeButton
 #' @rdname addHomeButton
+#' @param css,hover_css list of valid CSS key-value pairs. See e.g.
+#' \url{https://www.w3schools.com/cssref/index.php} for possible values.
 #' @aliases addHomeButton
 addHomeButton <- function(map, ext, group = "layer",
-                          position = 'bottomright', add = TRUE) {
+                          position = 'bottomright', add = TRUE,
+                          css = list(), hover_css = list()) {
   if (inherits(map, "mapview")) map <- mapview2leaflet(map)
   stopifnot(inherits(map, c("leaflet", "leaflet_proxy")))
 
@@ -72,7 +75,59 @@ addHomeButton <- function(map, ext, group = "layer",
 
     txt <- paste('<strong>', group, '</strong>')
 
-    map$dependencies <- c(map$dependencies, leafletHomeButtonDependencies())
+    css_dflt = list(
+      "background-color" = "#ffffff95",
+      "border" = "none",
+      "width" = "100%",
+      "height" = "20px",
+      "line-height" = "15px",
+      "font-size" = "85%",
+      "text-align" = "center",
+      "text-decoration" = "none",
+      "color" = "black",
+      "cursor" = "pointer",
+      "overflow-x" = "visible",
+      "overflow-y" = "hidden",
+      "opacity" = "0.25",
+      # "filter" = "alpha(opacity = 25)",
+      "background-position" = "50% 50%",
+      "background-repeat" = "no-repeat",
+      "display" = "inline-block"
+    )
+
+    hover_css_dflt = list(
+      'background-color' =  '#00ffff'
+      , 'text-decoration' =  'underline'
+      , 'opacity' = '0.9'
+    )
+
+    css = jsonlite::toJSON(utils::modifyList(css_dflt, css), auto_unbox = TRUE)
+    hover_css = jsonlite::toJSON(
+      utils::modifyList(hover_css_dflt, hover_css)
+      , auto_unbox = TRUE
+    )
+
+    css_txt = sprintf(
+      ".leaflet-bar button %s \n\n .leaflet-bar button:hover %s"
+      , css
+      , hover_css
+    )
+
+    css_txt = gsub('\"', '', css_txt)
+    css_txt = gsub(",", ";", css_txt)
+
+    path_layer = tempfile()
+    dir.create(path_layer)
+    path_layer = paste0(path_layer, "/", group, "_home-button.css")
+    writeLines(css_txt, path_layer)
+
+
+    map$dependencies <- c(
+      map$dependencies
+      , leafletHomeButtonDependencies()
+      , cssFileAttachment(path_layer, group)
+    )
+
     leaflet::invokeMethod(map, leaflet::getMapData(map), 'addHomeButton',
                           ext[1], ext[2], ext[3], ext[4],
                           useext, group, label, txt, position)
@@ -121,9 +176,20 @@ leafletHomeButtonDependencies <- function() {
       "HomeButton",
       '0.0.1',
       system.file("htmlwidgets/lib/HomeButton", package = "leafem"),
-      script = c("home-button.js", 'easy-button-src.min.js'),
-      stylesheet = 'home-button.css'
+      script = c("home-button.js", 'easy-button-src.min.js')
+      # stylesheet = 'home-button.css'
     ))
+}
+
+cssFileAttachment = function(fn, layerId) {
+  data_dir <- dirname(fn)
+  data_file <- basename(fn)
+  list(
+    htmltools::htmlDependency(
+      name = paste0(layerId, "-CSS"),
+      version = '0.0.1',
+      src = c(file = data_dir),
+      stylesheet = data_file))
 }
 
 ##############################################################################

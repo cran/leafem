@@ -14,6 +14,8 @@ addRasterRGB(
   quantiles = c(0, 1),
   domain = NULL,
   na.color = "#BEBEBE80",
+  method = c("auto", "bilinear", "near", "average", "mode", "cubic", "cubicspline",
+    "lanczos", "sum", "min", "q1", "median", "q3", "max", "rms"),
   ...
 )
 
@@ -26,13 +28,15 @@ addStarsRGB(
   quantiles = c(0, 1),
   domain = NULL,
   na.color = "#BEBEBE80",
+  method = c("auto", "bilinear", "near", "average", "mode", "cubic", "cubicspline",
+    "lanczos", "sum", "min", "q1", "median", "q3", "max", "rms"),
   ...
 )
 }
 \arguments{
 \item{map}{a map widget object created from `leaflet()``}
 
-\item{x}{a  `RasterBrick`, `RasterStack` or `stars`` raster object}
+\item{x}{a  \code{RasterBrick}, \code{RasterStack} or `stars`` raster object}
 
 \item{r}{integer. Index of the Red channel/band, between 1 and nlayers(x)}
 
@@ -41,16 +45,33 @@ addStarsRGB(
 \item{b}{integer. Index of the Blue channel/band, between 1 and nlayers(x)}
 
 \item{quantiles}{the upper and lower quantiles used for color stretching.
-If set to NULL, stretching is performed basing on `domain` argument.}
+If set to NULL, stretching is performed basing on \code{domain} argument.}
 
 \item{domain}{the upper and lower values used for color stretching.
-This is used only if `quantiles` is NULL.
-If both `domain` and `quantiles` are set to NULL, stretching is applied
+This is used only if \code{quantiles} is NULL.
+If both \code{domain} and \code{quantiles} are set to NULL, stretching is applied
 based on min-max values.}
 
 \item{na.color}{the color to be used for NA pixels}
 
-\item{...}{additional arguments passed on to \code{\link{addRasterImage}}}
+\item{method}{character. Method used for estimating the new cell values of a SpatRaster. One of: 
+  
+	\code{near}: nearest neighbor. This method is fast, and it can be the preferred method if the cell values represent classes. It is not a good choice for continuous values. This is used by default if the first layer of \code{x} is categorical.
+
+	\code{bilinear}: bilinear interpolation. This is the default if the first layer of \code{x} is numeric (not categorical).
+
+	\code{cubic}: cubic interpolation.
+
+	\code{cubicspline}: cubic spline interpolation.
+
+	\code{lanczos}: Lanczos windowed sinc resampling.
+
+	\code{sum}: the weighted sum of all non-NA contributing grid cells.	
+	
+	\code{min, q1, med, q3, max, average, mode, rms}: the minimum, first quartile, median, third quartile, maximum, mean, mode, or root-mean-square value of all non-NA contributing grid cells.	
+  }
+
+\item{...}{additional arguments passed on to \code{\link[leaflet]{addRasterImage}}}
 }
 \description{
 Create a Red-Green-Blue image overlay from a \code{RasterStack} /
@@ -59,9 +80,13 @@ Three layers (sometimes referred to as "bands" because they may represent
 different bandwidths in the electromagnetic spectrum) are combined such
 that they represent the red, green and blue channel. This function can
 be used to make 'true (or false) color images' from Landsat and other
-multi-band satellite images. Note, this text is plagirized, i.e. copied
-from \code{\link{plotRGB}}.
-\code{AddRasterRGB} and \code{addStarsRGB} are aliases.
+multi-band satellite images. Note, this text is plagiarized, i.e. copied
+from \code{\link[raster]{plotRGB}}.
+\code{addRasterRGB} and \code{addStarsRGB} are aliases.
+}
+\details{
+Note, method \code{auto}, the default, will choose between \code{near} for factorial and
+\code{bilinear} for numeric data. All other methods need to be set manually.
 }
 \examples{
 \donttest{
