@@ -1,6 +1,6 @@
 Package: leafem
 Title: 'leaflet' Extensions for 'mapview'
-Version: 0.2.4
+Version: 0.2.5
 Authors@R: 
     c(person(given = "Tim",
              family = "Appelhans",
@@ -75,7 +75,7 @@ Suggests: clipr, fontawesome, leafgl, lwgeom, mapdeck, plainview,
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-04-30 11:33:58 UTC; tim
+Packaged: 2025-08-28 09:00:52 UTC; tim
 Author: Tim Appelhans [cre, aut],
   Christoph Reudenbach [ctb],
   Kenton Russell [ctb],
@@ -91,4 +91,4 @@ Author: Tim Appelhans [cre, aut],
   Derek Friend [ctb],
   Kevin Cazelles [ctb] (ORCID: <https://orcid.org/0000-0001-6619-9874>)
 Repository: CRAN
-Date/Publication: 2025-05-01 13:40:06 UTC
+Date/Publication: 2025-08-28 12:30:02 UTC
